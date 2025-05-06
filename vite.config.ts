@@ -19,21 +19,5 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-  },
-  optimizeDeps: {
-    include: ['react-beautiful-dnd']
-  },
-  build: {
-    commonjsOptions: {
-      include: [/react-beautiful-dnd/, /node_modules/],
-    },
-    rollupOptions: {
-      external: ['react-beautiful-dnd'],
-      output: {
-        globals: {
-          'react-beautiful-dnd': 'ReactBeautifulDnd'
-        }
-      }
-    }
   }
 }));

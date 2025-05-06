@@ -12,8 +12,6 @@ import { useBookmarks } from "@/contexts/BookmarkContext";
 import { GridIcon, ListIcon, TagsIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 
-// Import react-beautiful-dnd dynamically to avoid build issues
-// We'll use a simplified version without drag-drop functionality for now
 const Dashboard = () => {
   const { bookmarks, loading, deleteBookmark, viewMode, setViewMode, reorderBookmarks } = useBookmarks();
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -135,12 +133,14 @@ const Dashboard = () => {
             bookmarks={filteredBookmarks} 
             onDelete={handleDelete} 
             onViewSummary={handleViewSummary}
+            onReorder={handleReorder}
           />
         ) : (
           <BookmarkList 
             bookmarks={filteredBookmarks} 
             onDelete={handleDelete}
             onViewSummary={handleViewSummary}
+            onReorder={handleReorder}
           />
         )}
         
