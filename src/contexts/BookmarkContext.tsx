@@ -12,6 +12,7 @@ export interface Bookmark {
   userId: string;
   createdAt: number;
   tags?: string[];
+  order?: number;
 }
 
 interface BookmarkContextType {
@@ -21,6 +22,7 @@ interface BookmarkContextType {
   deleteBookmark: (id: string) => Promise<void>;
   viewMode: 'grid' | 'list';
   setViewMode: (mode: 'grid' | 'list') => void;
+  reorderBookmarks: (sourceIndex: number, destinationIndex: number) => void;
 }
 
 const BookmarkContext = createContext<BookmarkContextType | undefined>(undefined);
@@ -38,7 +40,16 @@ export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setLoading(true);
         try {
           const userBookmarks = await bookmarkService.getBookmarks(user.id);
-          setBookmarks(userBookmarks);
+          // Sort by order property if it exists, otherwise by createdAt (newest first)
+          const sortedBookmarks = userBookmarks.sort((a, b) => {
+            // If both have order property, use it
+            if (a.order !== undefined && b.order !== undefined) {
+              return a.order - b.order;
+            }
+            // Otherwise sort by creation date (newest first)
+            return b.createdAt - a.createdAt;
+          });
+          setBookmarks(sortedBookmarks);
         } catch (error) {
           console.error('Error loading bookmarks:', error);
           toast.error("Failed to load bookmarks");
@@ -83,6 +94,29 @@ export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setLoading(false);
     }
   };
+  
+  const reorderBookmarks = async (sourceIndex: number, destinationIndex: number) => {
+    try {
+      // Create a new array with the reordered bookmarks
+      const reorderedBookmarks = [...bookmarks];
+      const [movedBookmark] = reorderedBookmarks.splice(sourceIndex, 1);
+      reorderedBookmarks.splice(destinationIndex, 0, movedBookmark);
+      
+      // Update the order property
+      const updatedBookmarks = reorderedBookmarks.map((bookmark, index) => ({
+        ...bookmark,
+        order: index
+      }));
+      
+      setBookmarks(updatedBookmarks);
+      
+      // Persist the new order
+      await bookmarkService.updateBookmarksOrder(updatedBookmarks);
+    } catch (error) {
+      console.error('Error reordering bookmarks:', error);
+      toast.error("Failed to update bookmark order");
+    }
+  };
 
   const value = {
     bookmarks,
@@ -90,7 +124,8 @@ export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     addBookmark,
     deleteBookmark,
     viewMode,
-    setViewMode
+    setViewMode,
+    reorderBookmarks
   };
 
   return <BookmarkContext.Provider value={value}>{children}</BookmarkContext.Provider>;

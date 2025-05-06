@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 import { StorageService } from './StorageService';
 import { toast } from "sonner";
@@ -11,6 +12,7 @@ export interface Bookmark {
   userId: string;
   createdAt: number;
   tags?: string[];
+  order?: number;
 }
 
 export class BookmarkService {
@@ -40,6 +42,12 @@ export class BookmarkService {
       // Generate AI summary using Jina AI
       const summary = await this.generateSummary(url);
       
+      // Get current bookmarks to determine order
+      const currentBookmarks = await this.getBookmarks(userId);
+      const maxOrder = currentBookmarks.length > 0 
+        ? Math.max(...currentBookmarks.map(b => b.order !== undefined ? b.order : -1)) 
+        : -1;
+      
       const bookmark: Bookmark = {
         id: uuidv4(),
         url,
@@ -48,7 +56,8 @@ export class BookmarkService {
         summary: summary || metaData.summary || 'No summary available.',
         userId,
         createdAt: Date.now(),
-        tags: tags || []
+        tags: tags || [],
+        order: maxOrder + 1 // Set order to be after all existing bookmarks
       };
 
       await this.storage.addBookmark(bookmark);
@@ -65,6 +74,18 @@ export class BookmarkService {
       await this.storage.deleteBookmark(id);
     } catch (error) {
       console.error('Error deleting bookmark:', error);
+      throw error;
+    }
+  }
+  
+  async updateBookmarksOrder(bookmarks: Bookmark[]): Promise<void> {
+    try {
+      // Update each bookmark in storage
+      for (const bookmark of bookmarks) {
+        await this.storage.updateBookmark(bookmark);
+      }
+    } catch (error) {
+      console.error('Error updating bookmark order:', error);
       throw error;
     }
   }

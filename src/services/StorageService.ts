@@ -1,4 +1,3 @@
-
 // Simple wrapper for localStorage/IndexedDB for data persistence
 export class StorageService {
   // IndexedDB implementation
@@ -261,6 +260,48 @@ export class StorageService {
       if (bookmarks) {
         const parsedBookmarks = JSON.parse(bookmarks);
         const updatedBookmarks = parsedBookmarks.filter((bookmark: any) => bookmark.id !== id);
+        localStorage.setItem('bookmarks', JSON.stringify(updatedBookmarks));
+      }
+    }
+  }
+
+  async updateBookmark(bookmark: any): Promise<void> {
+    try {
+      const db = await this.initializeDB();
+      if (db) {
+        return new Promise((resolve, reject) => {
+          const transaction = db.transaction('bookmarks', 'readwrite');
+          const store = transaction.objectStore('bookmarks');
+          const request = store.put(bookmark); // Put will update if the key exists
+
+          request.onsuccess = () => {
+            resolve();
+          };
+
+          request.onerror = () => {
+            reject(request.error);
+          };
+        });
+      } else {
+        // Fallback to localStorage
+        const bookmarks = localStorage.getItem('bookmarks');
+        if (bookmarks) {
+          const parsedBookmarks = JSON.parse(bookmarks);
+          const updatedBookmarks = parsedBookmarks.map((b: any) => 
+            b.id === bookmark.id ? bookmark : b
+          );
+          localStorage.setItem('bookmarks', JSON.stringify(updatedBookmarks));
+        }
+      }
+    } catch (error) {
+      console.error('UpdateBookmark error:', error);
+      // Fallback to localStorage
+      const bookmarks = localStorage.getItem('bookmarks');
+      if (bookmarks) {
+        const parsedBookmarks = JSON.parse(bookmarks);
+        const updatedBookmarks = parsedBookmarks.map((b: any) => 
+          b.id === bookmark.id ? bookmark : b
+        );
         localStorage.setItem('bookmarks', JSON.stringify(updatedBookmarks));
       }
     }
