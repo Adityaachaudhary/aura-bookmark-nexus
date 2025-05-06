@@ -19,8 +19,16 @@ const BookmarkForm: React.FC<BookmarkFormProps> = ({ onSuccess }) => {
     e.preventDefault();
     
     // Validate URL
+    let formattedUrl = url.trim();
+    
+    // Add protocol if missing
+    if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
+      formattedUrl = 'https://' + formattedUrl;
+    }
+    
+    // Validate URL
     try {
-      new URL(url); // Will throw error if invalid URL
+      new URL(formattedUrl); // Will throw error if invalid URL
     } catch (error) {
       toast.error("Please enter a valid URL");
       return;
@@ -30,7 +38,7 @@ const BookmarkForm: React.FC<BookmarkFormProps> = ({ onSuccess }) => {
     toast.info("Generating summary with AI... This may take a moment.");
     
     try {
-      const bookmark = await addBookmark(url);
+      const bookmark = await addBookmark(formattedUrl);
       setUrl("");
       toast.success("Bookmark added with AI summary");
       if (onSuccess) onSuccess(bookmark);
