@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { BookmarkService } from '../services/BookmarkService';
 import { useAuth } from './AuthContext';
@@ -18,7 +17,7 @@ export interface Bookmark {
 interface BookmarkContextType {
   bookmarks: Bookmark[];
   loading: boolean;
-  addBookmark: (url: string, tags?: string[]) => Promise<void>;
+  addBookmark: (url: string, tags?: string[]) => Promise<Bookmark>;
   deleteBookmark: (id: string) => Promise<void>;
   viewMode: 'grid' | 'list';
   setViewMode: (mode: 'grid' | 'list') => void;
@@ -54,17 +53,16 @@ export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     loadBookmarks();
   }, [user]);
 
-  const addBookmark = async (url: string, tags?: string[]) => {
-    if (!user) return;
+  const addBookmark = async (url: string, tags?: string[]): Promise<Bookmark> => {
+    if (!user) throw new Error("User not authenticated");
     
     setLoading(true);
     try {
       const newBookmark = await bookmarkService.addBookmark(url, user.id, tags);
       setBookmarks(prev => [newBookmark, ...prev]);
-      toast.success("Bookmark added successfully!");
+      return newBookmark;
     } catch (error) {
       console.error('Error adding bookmark:', error);
-      toast.error("Failed to add bookmark");
       throw error;
     } finally {
       setLoading(false);

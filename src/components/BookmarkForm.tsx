@@ -27,11 +27,13 @@ const BookmarkForm: React.FC<BookmarkFormProps> = ({ onSuccess }) => {
     }
     
     setIsSubmitting(true);
+    toast.info("Generating summary with AI... This may take a moment.");
     
     try {
-      await addBookmark(url);
+      const bookmark = await addBookmark(url);
       setUrl("");
-      toast.success("Bookmark added successfully");
+      toast.success("Bookmark added with AI summary");
+      if (onSuccess) onSuccess(bookmark);
     } catch (error) {
       console.error("Error adding bookmark:", error);
       toast.error("Failed to add bookmark");
@@ -59,7 +61,7 @@ const BookmarkForm: React.FC<BookmarkFormProps> = ({ onSuccess }) => {
         {isSubmitting ? (
           <div className="flex items-center gap-2">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-            <span>Adding...</span>
+            <span>Generating AI Summary...</span>
           </div>
         ) : (
           <div className="flex items-center gap-2">

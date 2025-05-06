@@ -38,12 +38,15 @@ export class BookmarkService {
       // Extract metadata and generate summary
       const metaData = await this.extractMetadata(url);
       
+      // Generate AI summary using Jina AI
+      const summary = await this.generateSummary(url);
+      
       const bookmark: Bookmark = {
         id: uuidv4(),
         url,
         title: metaData.title || 'Untitled Bookmark',
         favicon: metaData.favicon || this.generateDefaultFavicon(url),
-        summary: metaData.summary || 'No summary available.',
+        summary: summary || metaData.summary || 'No summary available.',
         userId,
         createdAt: Date.now(),
         tags: tags || []
@@ -64,6 +67,34 @@ export class BookmarkService {
     } catch (error) {
       console.error('Error deleting bookmark:', error);
       throw error;
+    }
+  }
+
+  private async generateSummary(url: string): Promise<string> {
+    try {
+      const encodedUrl = encodeURIComponent(url);
+      const response = await fetch(`https://r.jina.ai/http://${encodedUrl}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'text/plain'
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to generate summary: ${response.statusText}`);
+      }
+      
+      // Get the summary text
+      const summaryText = await response.text();
+      
+      // Trim the summary if it's too long (optional, adjust as needed)
+      const maxLength = 500; // You can adjust this value
+      return summaryText.length > maxLength 
+        ? summaryText.substring(0, maxLength) + '...'
+        : summaryText;
+    } catch (error) {
+      console.error('Error generating summary with Jina AI:', error);
+      return 'Summary temporarily unavailable.';
     }
   }
 
