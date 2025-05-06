@@ -38,7 +38,16 @@ export class AuthService {
   private async verifyToken(token: string): Promise<JWTPayload> {
     try {
       const { payload } = await jose.jwtVerify(token, this.JWT_SECRET);
-      return payload as JWTPayload;
+      // Safely convert jose's JWTPayload to our custom JWTPayload
+      if (typeof payload.id !== 'string' || typeof payload.email !== 'string') {
+        throw new Error('Invalid token payload');
+      }
+      
+      return {
+        id: payload.id,
+        email: payload.email,
+        exp: payload.exp
+      };
     } catch (error) {
       throw new Error('Invalid token');
     }
