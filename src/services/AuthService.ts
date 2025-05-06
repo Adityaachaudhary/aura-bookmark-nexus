@@ -2,7 +2,7 @@
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { StorageService } from './StorageService';
-import jwt from 'jsonwebtoken';
+import * as jose from 'jose';
 
 interface User {
   id: string;
@@ -13,11 +13,12 @@ interface User {
 interface JWTPayload {
   id: string;
   email: string;
+  exp?: number;
 }
 
 export class AuthService {
   private storage: StorageService;
-  private JWT_SECRET = 'your-secret-key'; // In a real app, use env variables
+  private JWT_SECRET = new TextEncoder().encode('your-secret-key'); // In a real app, use env variables
   private TOKEN_KEY = 'auth_token';
   private USERS_KEY = 'users';
 
@@ -25,12 +26,22 @@ export class AuthService {
     this.storage = new StorageService();
   }
 
-  private generateToken(user: { id: string; email: string }): string {
-    return jwt.sign({ id: user.id, email: user.email }, this.JWT_SECRET, { expiresIn: '7d' });
+  private async generateToken(user: { id: string; email: string }): Promise<string> {
+    const payload = { id: user.id, email: user.email };
+    // Create JWT with 7 days expiration
+    return await new jose.SignJWT(payload)
+      .setProtectedHeader({ alg: 'HS256' })
+      .setExpirationTime('7d')
+      .sign(this.JWT_SECRET);
   }
 
-  private verifyToken(token: string): JWTPayload {
-    return jwt.verify(token, this.JWT_SECRET) as JWTPayload;
+  private async verifyToken(token: string): Promise<JWTPayload> {
+    try {
+      const { payload } = await jose.jwtVerify(token, this.JWT_SECRET);
+      return payload as JWTPayload;
+    } catch (error) {
+      throw new Error('Invalid token');
+    }
   }
 
   private saveToken(token: string): void {
@@ -61,7 +72,7 @@ export class AuthService {
 
     await this.storage.set(this.USERS_KEY, [...users, newUser]);
     
-    const token = this.generateToken({ id: newUser.id, email: newUser.email });
+    const token = await this.generateToken({ id: newUser.id, email: newUser.email });
     this.saveToken(token);
     
     return { id: newUser.id, email: newUser.email };
@@ -81,7 +92,7 @@ export class AuthService {
       throw new Error('Invalid credentials');
     }
     
-    const token = this.generateToken({ id: user.id, email: user.email });
+    const token = await this.generateToken({ id: user.id, email: user.email });
     this.saveToken(token);
     
     return { id: user.id, email: user.email };
@@ -95,7 +106,7 @@ export class AuthService {
     }
     
     try {
-      const decoded = this.verifyToken(token);
+      const decoded = await this.verifyToken(token);
       return { id: decoded.id, email: decoded.email };
     } catch (error) {
       this.logout();

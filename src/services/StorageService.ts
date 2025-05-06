@@ -10,8 +10,8 @@ export class StorageService {
     this.initializeDB();
   }
 
-  private initializeDB(): Promise<IDBDatabase> {
-    return new Promise((resolve, reject) => {
+  private initializeDB(): Promise<IDBDatabase | null> {
+    return new Promise<IDBDatabase | null>((resolve, reject) => {
       // If already initialized, return the existing database
       if (this.db) {
         resolve(this.db);
