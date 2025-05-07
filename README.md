@@ -15,6 +15,10 @@ A powerful bookmark management system that allows users to save, organize, and a
 - **Authentication**: Custom JWT implementation with secure storage
 - **Deployment**: Vite for building and serving
 
+## Live link
+`https://aura-bookmark-nexus.vercel.app/`
+
+
 ## Setup Instructions
 
 1. Clone the repository:
