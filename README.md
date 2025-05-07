@@ -91,10 +91,10 @@ With more time, I would implement these enhancements:
 
 ## Development Time
 
-Total time spent on this project: approximately 40 hours
+Total time spent on this project: approximately 7 hours
 
-- Initial setup and authentication system: 8 hours
-- Bookmark management functionality: 12 hours
-- AI summary integration: 10 hours
-- UI/UX design and implementation: 5 hours
-- Testing and bug fixes: 5 hours
+- Initial setup and authentication system: 0.5 hour
+- Bookmark management functionality: 2 hours
+- AI summary integration: 1.5 hours
+- UI/UX design and implementation: 1 hour
+- Testing and bug fixes: 2 hours
