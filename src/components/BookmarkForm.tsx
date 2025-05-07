@@ -13,7 +13,6 @@ interface BookmarkFormProps {
 const BookmarkForm: React.FC<BookmarkFormProps> = ({ onSuccess }) => {
   const [url, setUrl] = useState("");
   const [tags, setTags] = useState("");
-  const [showTagInput, setShowTagInput] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addBookmark } = useBookmarks();
 
@@ -36,20 +35,25 @@ const BookmarkForm: React.FC<BookmarkFormProps> = ({ onSuccess }) => {
       return;
     }
     
-    setIsSubmitting(true);
-    toast.info("Generating summary with AI... This may take a moment.");
-    
-    // Process tags
+    // Process tags - now required
     const tagArray = tags
       .split(",")
       .map(tag => tag.trim())
       .filter(tag => tag.length > 0);
+      
+    // Validate that tags are present
+    if (tagArray.length === 0) {
+      toast.error("Please add at least one tag");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    toast.info("Generating summary with AI... This may take a moment.");
     
     try {
       const bookmark = await addBookmark(formattedUrl, tagArray);
       setUrl("");
       setTags("");
-      setShowTagInput(false);
       toast.success("Bookmark added with AI summary");
       if (onSuccess) onSuccess(bookmark);
     } catch (error) {
@@ -91,29 +95,20 @@ const BookmarkForm: React.FC<BookmarkFormProps> = ({ onSuccess }) => {
         </Button>
       </div>
       
-      <div className="flex items-center gap-2">
-        <Button 
-          type="button" 
-          variant="ghost" 
-          size="sm" 
-          className="text-xs flex items-center gap-1"
-          onClick={() => setShowTagInput(!showTagInput)}
-        >
-          <TagIcon className="h-3 w-3" />
-          {showTagInput ? "Hide Tags" : "Add Tags"}
-        </Button>
+      {/* Always show tag input - no longer toggleable */}
+      <div className="flex items-center gap-2 mt-2">
+        <TagIcon className="h-4 w-4" />
+        <span className="text-sm">Tags (required)</span>
       </div>
       
-      {showTagInput && (
-        <Input
-          type="text"
-          placeholder="Enter tags separated by commas (e.g., work, research, reading)"
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
-          className="mt-1"
-          disabled={isSubmitting}
-        />
-      )}
+      <Input
+        type="text"
+        placeholder="Enter tags separated by commas (e.g., work, research, reading)"
+        value={tags}
+        onChange={(e) => setTags(e.target.value)}
+        disabled={isSubmitting}
+        required
+      />
     </form>
   );
 };

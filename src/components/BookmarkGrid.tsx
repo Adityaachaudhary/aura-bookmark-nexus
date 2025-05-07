@@ -4,7 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Bookmark } from "@/contexts/BookmarkContext";
-import { ExternalLinkIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon } from "lucide-react";
+import { ExternalLinkIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon, TagIcon } from "lucide-react";
 
 interface BookmarkGridProps {
   bookmarks: Bookmark[];
@@ -89,8 +89,12 @@ const BookmarkGrid: React.FC<BookmarkGridProps> = ({ bookmarks, onDelete, onView
               {bookmark.summary}
             </p>
             
+            {/* Tags section - prominently shown for all bookmarks */}
             {bookmark.tags && bookmark.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-3">
+                <div className="flex items-center mr-1">
+                  <TagIcon className="h-3 w-3 text-muted-foreground" />
+                </div>
                 {bookmark.tags.map(tag => (
                   <Badge key={tag} variant="outline" className="text-xs">
                     {tag}

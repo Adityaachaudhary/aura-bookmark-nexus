@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useBookmarks } from "@/contexts/BookmarkContext";
-import { GridIcon, ListIcon, TagsIcon, XIcon } from "lucide-react";
+import { GridIcon, ListIcon, TagIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 
 const Dashboard = () => {
@@ -58,7 +58,7 @@ const Dashboard = () => {
         {allTags.length > 0 && (
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-2">
-              <TagsIcon className="h-4 w-4" />
+              <TagIcon className="h-4 w-4" />
               <h3 className="text-sm font-medium">Filter by tag</h3>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -144,13 +144,13 @@ const Dashboard = () => {
           />
         )}
         
-        {/* Summary Dialog */}
+        {/* Enhanced Summary Dialog with better scrolling */}
         <Dialog open={openSummary !== null} onOpenChange={() => setOpenSummary(null)}>
-          <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogContent className="max-w-2xl max-h-[90vh]">
             <DialogHeader>
-              <DialogTitle>{openSummary?.title}</DialogTitle>
+              <DialogTitle className="text-xl">{openSummary?.title}</DialogTitle>
             </DialogHeader>
-            <ScrollArea className="h-[50vh] mt-4">
+            <ScrollArea className="h-[60vh] mt-4 pr-4">
               <div className="p-4 whitespace-pre-wrap text-sm">
                 {openSummary?.summary}
               </div>

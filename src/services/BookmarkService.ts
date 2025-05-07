@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { StorageService } from './StorageService';
 import { toast } from "sonner";
@@ -35,6 +34,10 @@ export class BookmarkService {
   }
 
   async addBookmark(url: string, userId: string, tags?: string[]): Promise<Bookmark> {
+    if (!tags || tags.length === 0) {
+      throw new Error("Tags are required to add a bookmark");
+    }
+    
     try {
       // Extract metadata and generate summary
       const metaData = await this.extractMetadata(url);
@@ -93,8 +96,6 @@ export class BookmarkService {
   private async generateSummary(url: string): Promise<string> {
     try {
       // Properly format the URL for Jina AI - keep the full URL with http/https
-      // The example in the docs suggests using http:// after r.jina.ai/ but we need to ensure
-      // the target URL includes its own protocol
       const encodedUrl = encodeURIComponent(url);
       
       // Make sure we're using the correct endpoint format
@@ -119,11 +120,16 @@ export class BookmarkService {
       const summaryText = await response.text();
       console.log('Received summary from Jina AI:', summaryText.substring(0, 100) + '...');
       
-      // Trim the summary if it's too long
-      const maxLength = 500;
-      return summaryText.length > maxLength 
-        ? summaryText.substring(0, maxLength) + '...'
-        : summaryText;
+      // Adjust the length to be 200-300 words, not characters
+      const words = summaryText.split(/\s+/);
+      const targetWords = words.slice(0, Math.min(300, Math.max(200, words.length)));
+      
+      // Add ellipsis only if we're truncating
+      const finalSummary = words.length > 300 
+        ? targetWords.join(' ') + '...'
+        : targetWords.join(' ');
+        
+      return finalSummary;
     } catch (error) {
       console.error('Error generating summary with Jina AI:', error);
       return 'Summary temporarily unavailable.';
